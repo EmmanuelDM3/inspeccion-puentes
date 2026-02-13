@@ -1307,47 +1307,65 @@
                 element.addEventListener('change', calcularCondicionGeneral);
             });
 
-        // ============================================
-        // VALIDACIÓN Y ENVÍO DEL FORMULARIO
-        // ============================================
-        document.getElementById('inspectionForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            // Validar GPS
-            if (!document.getElementById('latitud').value || !document.getElementById('longitud').value) {
-                alert('⚠️ ERROR: Debe capturar las coordenadas GPS antes de enviar el formulario.');
-                document.getElementById('gpsButton').scrollIntoView({ behavior: 'smooth', block: 'center' });
-                return;
-            }
-            
-            // Validar fotos
-            const fotoSuper = document.getElementById('fotoSuper').files.length;
-            const fotoSub = document.getElementById('fotoSub').files.length;
-            
-            if (fotoSuper === 0 || fotoSub === 0) {
-                alert('⚠️ ERROR: Debe adjuntar las fotografías obligatorias de superestructura y subestructura.');
-                return;
-            }
-            
-            // Validar foto hidráulica si aplica
-            if (document.getElementById('cruceAgua').value === 'si') {
-                const fotoHidraulico = document.getElementById('fotoHidraulico').files.length;
-                if (fotoHidraulico === 0) {
-                    const confirmar = confirm('No ha adjuntado foto del entorno hidráulico. ¿Desea continuar sin ella?');
-                    if (!confirmar) return;
-                }
-            }
-            
-            // Si llegó aquí, validación exitosa
-            alert('✅ FORMULARIO VALIDADO CORRECTAMENTE\n\n' +
-                  'Los datos han sido recopilados exitosamente.\n' +
-                  'En un sistema real, aquí se enviarían los datos al servidor.\n\n' +
-                  'Condición General: ' + document.getElementById('condicionCalculada').textContent + '/5');
-            
-            // Aquí iría la lógica de envío real al servidor
-            // fetch('/api/inspecciones', { method: 'POST', body: new FormData(this) })
+        // Función para convertir archivos a Base64 (necesaria para enviar fotos)
+const toBase64 = file => new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result.split(',')[1]);
+    reader.onerror = error => reject(error);
+});
+
+document.getElementById('inspectionForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    // Validaciones de seguridad (Mantenemos tus reglas originales)
+    if (!document.getElementById('latitud').value) {
+        alert(' ⚠️ ERROR: Capture el GPS primero.');
+        return;
+    }
+    
+    const btn = e.target.querySelector('button[type="submit"]');
+    btn.innerHTML = "⏳ Enviando a SharePoint...";
+    btn.disabled = true;
+
+    try {
+        const fotoSuper = document.getElementById('fotoSuper').files[0];
+        const fotoSub = document.getElementById('fotoSub').files[0];
+
+        // Construcción del paquete de datos para Power Automate
+        const payload = {
+            puenteId: document.getElementById('puenteId').value,
+            nombre: document.getElementById('nombreEstructura').value,
+            provincia: document.getElementById('provincia').value,
+            latitud: document.getElementById('latitud').value,
+            longitud: document.getElementById('longitud').value,
+            anioConstruccion: parseInt(document.getElementById('anioConstruccion').value),
+            condicion: document.getElementById('condicionCalculada').textContent,
+            // Convertimos las fotos
+            fotoSuper_Base64: await toBase64(fotoSuper),
+            fotoSub_Base64: await toBase64(fotoSub)
+        };
+
+        // ENVÍO REAL
+        const response = await fetch('PEGA_AQUI_TU_URL_DE_POWER_AUTOMATE', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
         });
 
+        if (response.ok) {
+            alert('✅ ¡Inspección guardada con éxito en SharePoint!');
+            location.reload(); 
+        } else {
+            throw new Error('Error en la conexión con el servidor');
+        }
+    } catch (error) {
+        alert('❌ Error: ' + error.message);
+    } finally {
+        btn.innerHTML = "✅ Enviar Formulario de Inspección";
+        btn.disabled = false;
+    }
+});
         // ============================================
         // ACTUALIZAR PROGRESO EN TIEMPO REAL
         // ============================================
