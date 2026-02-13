@@ -38,6 +38,12 @@
             letter-spacing: 0.5px;
             }
 
+.subtitle {
+            font-size: 15px;
+            opacity: 0.9;
+            font-weight: 400;
+            }
+
 .form-content {
             padding: 40px 30px;
             }
