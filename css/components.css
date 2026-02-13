@@ -13,6 +13,11 @@ label {
             font-size: 14px;
             }
 
+.required {
+            color: var(--rojo-rd);
+            margin-left: 3px;
+            }
+
 input, select, textarea {
             width: 100%;
             padding: 12px 16px;
@@ -33,6 +38,13 @@ input:focus, select:focus, textarea:focus {
 textarea {
             resize: vertical;
             min-height: 100px;
+            }
+
+.helper-text {
+            font-size: 13px;
+            color: var(--gris-medio);
+            margin-top: 5px;
+            font-style: italic;
             }
 
 /*BOTONES*/
