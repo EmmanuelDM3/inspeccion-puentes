@@ -1,0 +1,1363 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulario de Inspección de Puentes - ONESVIE/MOPC</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0F4C81;
+            --primary-dark: #083A5E;
+            --secondary: #D97706;
+            --accent: #10B981;
+            --danger: #EF4444;
+            --warning: #F59E0B;
+            --bg-main: #F8FAFC;
+            --bg-card: #FFFFFF;
+            --border: #E2E8F0;
+            --text-primary: #1E293B;
+            --text-secondary: #64748B;
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
+            --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem 1rem;
+            color: var(--text-primary);
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .header {
+            background: var(--bg-card);
+            padding: 2.5rem;
+            border-radius: 16px 16px 0 0;
+            border-bottom: 3px solid var(--primary);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+
+        .header p {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        .form-wrapper {
+            background: var(--bg-card);
+            border-radius: 0 0 16px 16px;
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: var(--border);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            width: 0%;
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .form-content {
+            padding: 2.5rem;
+        }
+
+        .section {
+            margin-bottom: 3rem;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .section-number {
+            background: var(--primary);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.25rem;
+            flex-shrink: 0;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .form-group {
+            margin-bottom: 1.75rem;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+        }
+
+        .required {
+            color: var(--danger);
+            margin-left: 0.25rem;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="date"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: all 0.2s ease;
+            background: var(--bg-main);
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: white;
+            box-shadow: 0 0 0 4px rgba(15, 76, 129, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            padding: 1rem;
+            background: var(--bg-main);
+            border-radius: 10px;
+            border: 2px solid var(--border);
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .checkbox-item:hover {
+            background: #F1F5F9;
+            transform: translateX(4px);
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: var(--primary);
+        }
+
+        .severity-selector {
+            display: none;
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #FEF3C7;
+            border-left: 4px solid var(--warning);
+            border-radius: 8px;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .severity-selector.active {
+            display: block;
+        }
+
+        .severity-scale {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.75rem;
+        }
+
+        .severity-option {
+            flex: 1;
+            padding: 0.75rem;
+            text-align: center;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: white;
+            font-weight: 600;
+        }
+
+        .severity-option:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .severity-option input[type="radio"] {
+            display: none;
+        }
+
+        .severity-option input[type="radio"]:checked + label {
+            background: var(--primary);
+            color: white;
+        }
+
+        .severity-1 { border-color: #7C3AED; }
+        .severity-2 { border-color: #EF4444; }
+        .severity-3 { border-color: #F59E0B; }
+        .severity-4 { border-color: #3B82F6; }
+        .severity-5 { border-color: #10B981; }
+
+        .photo-upload {
+            position: relative;
+            border: 3px dashed var(--border);
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: var(--bg-main);
+        }
+
+        .photo-upload:hover {
+            border-color: var(--primary);
+            background: #F1F5F9;
+            transform: scale(1.01);
+        }
+
+        .photo-upload input[type="file"] {
+            display: none;
+        }
+
+        .photo-icon {
+            font-size: 3rem;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+
+        .gps-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            padding: 1rem 1.5rem;
+            background: linear-gradient(135deg, var(--accent), #059669);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            box-shadow: var(--shadow-md);
+        }
+
+        .gps-button:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .gps-button:active {
+            transform: translateY(0);
+        }
+
+        .coordinates-display {
+            display: none;
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #ECFDF5;
+            border-radius: 10px;
+            border-left: 4px solid var(--accent);
+        }
+
+        .coordinates-display.active {
+            display: block;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .coordinates-display p {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .submit-section {
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 2px solid var(--border);
+        }
+
+        .submit-button {
+            width: 100%;
+            padding: 1.25rem 2rem;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.125rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-lg);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .submit-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .submit-button:active {
+            transform: translateY(-1px);
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .alert-warning {
+            background: #FEF3C7;
+            border-left: 4px solid var(--warning);
+            color: #92400E;
+        }
+
+        .alert-info {
+            background: #DBEAFE;
+            border-left: 4px solid #3B82F6;
+            color: #1E40AF;
+        }
+
+        .condition-indicator {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+        }
+
+        .condition-critical { background: #FEE2E2; color: #991B1B; }
+        .condition-poor { background: #FED7AA; color: #9A3412; }
+        .condition-fair { background: #FEF3C7; color: #92400E; }
+        .condition-good { background: #DBEAFE; color: #1E40AF; }
+        .condition-excellent { background: #D1FAE5; color: #065F46; }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem 0.5rem;
+            }
+
+            .header {
+                padding: 1.5rem;
+            }
+
+            .header h1 {
+                font-size: 1.5rem;
+            }
+
+            .form-content {
+                padding: 1.5rem;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .section-title {
+                font-size: 1.25rem;
+            }
+
+            .severity-scale {
+                flex-direction: column;
+            }
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📋 Formulario de Inspección de Puentes</h1>
+            <p>Sistema Parametrizado de Evaluación - ONESVIE/MOPC</p>
+        </div>
+
+        <div class="form-wrapper">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+
+            <form id="inspectionForm" class="form-content">
+                
+                <!-- SECCIÓN 1: IDENTIFICACIÓN E INVENTARIO -->
+                <div class="section" data-section="1">
+                    <div class="section-header">
+                        <div class="section-number">1</div>
+                        <h2 class="section-title">Identificación e Inventario</h2>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Identificador Único <span class="required">*</span></label>
+                            <input type="text" id="puenteId" required placeholder="Ej: PNT-2025-001">
+                        </div>
+                        <div class="form-group">
+                            <label>Nombre de la Estructura <span class="required">*</span></label>
+                            <input type="text" id="nombreEstructura" required placeholder="Ej: Puente 17 de Diciembre">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Provincia <span class="required">*</span></label>
+                            <select id="provincia" required>
+                                <option value="">Seleccionar...</option>
+                                <option>Distrito Nacional</option>
+                                <option>Santo Domingo</option>
+                                <option>Santiago</option>
+                                <option>La Vega</option>
+                                <option>San Cristóbal</option>
+                                <option>Duarte</option>
+                                <option>Azua</option>
+                                <option>Barahona</option>
+                                <option>Espaillat</option>
+                                <option>La Altagracia</option>
+                                <option>Puerto Plata</option>
+                                <option>San Pedro de Macorís</option>
+                                <option>Monte Plata</option>
+                                <option>Peravia</option>
+                                <option>Sánchez Ramírez</option>
+                                <option>Monseñor Nouel</option>
+                                <option>María Trinidad Sánchez</option>
+                                <option>Samaná</option>
+                                <option>Hato Mayor</option>
+                                <option>El Seibo</option>
+                                <option>La Romana</option>
+                                <option>Independencia</option>
+                                <option>Baoruco</option>
+                                <option>Pedernales</option>
+                                <option>San Juan</option>
+                                <option>Elías Piña</option>
+                                <option>Dajabón</option>
+                                <option>Monte Cristi</option>
+                                <option>Santiago Rodríguez</option>
+                                <option>Valverde</option>
+                                <option>San José de Ocoa</option>
+                                <option>Hermanas Mirabal</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Municipio/Sector</label>
+                            <input type="text" id="municipio" placeholder="Ej: Villa Mella">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Coordenadas GPS <span class="required">*</span></label>
+                        <button type="button" class="gps-button" id="gpsButton">
+                            📍 Capturar Ubicación GPS
+                        </button>
+                        <div class="coordinates-display" id="coordinatesDisplay">
+                            <p>📌 Latitud: <span id="latValue">--</span></p>
+                            <p>📌 Longitud: <span id="lngValue">--</span></p>
+                        </div>
+                        <input type="hidden" id="latitud" required>
+                        <input type="hidden" id="longitud" required>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Vía que cruza <span class="required">*</span></label>
+                            <select id="viaCruza" required>
+                                <option value="">Seleccionar...</option>
+                                <option>Autopista/Avenida Principal</option>
+                                <option>Carretera Nacional</option>
+                                <option>Vía Local</option>
+                                <option>Ferrocarril</option>
+                                <option>Otra</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Obstáculo que cruza <span class="required">*</span></label>
+                            <select id="obstaculoCruza" required>
+                                <option value="">Seleccionar...</option>
+                                <option>Río</option>
+                                <option>Arroyo</option>
+                                <option>Cañada</option>
+                                <option>Otra Vía</option>
+                                <option>Desnivel/Valle</option>
+                                <option>Ferrocarril</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Entidad Evaluadora <span class="required">*</span></label>
+                            <select id="entidadEvaluadora" required>
+                                <option value="">Seleccionar...</option>
+                                <option>ONESVIE</option>
+                                <option>MOPC</option>
+                                <option>OISOE</option>
+                                <option>Otra</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Año del Informe <span class="required">*</span></label>
+                            <input type="number" id="anioInforme" required min="1990" max="2026" value="2026">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN 2: CONFIGURACIÓN Y GEOMETRÍA -->
+                <div class="section" data-section="2">
+                    <div class="section-header">
+                        <div class="section-number">2</div>
+                        <h2 class="section-title">Configuración y Geometría</h2>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Tipo de Infraestructura <span class="required">*</span></label>
+                        <select id="tipoInfraestructura" required>
+                            <option value="">Seleccionar...</option>
+                            <option>Puente vehicular</option>
+                            <option>Paso a desnivel</option>
+                            <option>Puente colgante</option>
+                            <option>Puente tipo cajón</option>
+                            <option>Paso elevado</option>
+                            <option>Puente peatonal</option>
+                            <option>Puente binacional</option>
+                        </select>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Año de Construcción <span class="required">*</span></label>
+                            <input type="number" id="anioConstruccion" required min="1900" max="2026" placeholder="Ej: 2005">
+                        </div>
+                        <div class="form-group">
+                            <label>Material Principal <span class="required">*</span></label>
+                            <select id="materialPrincipal" required>
+                                <option value="">Seleccionar...</option>
+                                <option>Hormigón armado</option>
+                                <option>Acero estructural</option>
+                                <option>Hormigón pretensado/postensado</option>
+                                <option>Mampostería</option>
+                                <option>Mixto (acero-hormigón)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info" id="alertSismico" style="display: none;">
+                        ⚠️ <strong>Atención:</strong> Esta estructura fue construida ANTES del código sísmico de 2011. Requiere evaluación especial.
+                    </div>
+
+                    <h3 style="margin: 2rem 0 1rem; color: var(--primary); font-size: 1.25rem;">Dimensiones del Conjunto</h3>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Longitud Total (m) <span class="required">*</span></label>
+                            <input type="number" id="longitudTotal" required step="0.1" placeholder="Ej: 45.5">
+                        </div>
+                        <div class="form-group">
+                            <label>Ancho del Tablero (m) <span class="required">*</span></label>
+                            <input type="number" id="anchoTablero" required step="0.1" placeholder="Ej: 12.0">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Número de Tramos <span class="required">*</span></label>
+                            <input type="number" id="numeroTramos" required min="1" placeholder="Ej: 3">
+                        </div>
+                        <div class="form-group">
+                            <label>Gálibo - Altura Libre (m)</label>
+                            <input type="number" id="galibo" step="0.1" placeholder="Ej: 5.5">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN 3: EVALUACIÓN VISUAL POR ELEMENTOS -->
+                <div class="section" data-section="3">
+                    <div class="section-header">
+                        <div class="section-number">3</div>
+                        <h2 class="section-title">Evaluación Visual por Elementos</h2>
+                    </div>
+
+                    <div class="alert alert-warning">
+                        📸 <strong>Importante:</strong> Las fotografías son obligatorias para cada elemento con patologías detectadas.
+                    </div>
+
+                    <!-- 3.1 Superestructura -->
+                    <h3 style="margin: 2rem 0 1rem; color: var(--primary); font-size: 1.25rem;">3.1 Superestructura (Vigas y Tablero)</h3>
+
+                    <div class="form-group">
+                        <label>Tipo de Superestructura <span class="required">*</span></label>
+                        <select id="tipoSuperestructura" required>
+                            <option value="">Seleccionar...</option>
+                            <option>Vigas I</option>
+                            <option>Vigas AASHTO</option>
+                            <option>Vigas Cajón</option>
+                            <option>Losa maciza</option>
+                            <option>Cables/Tirantes</option>
+                            <option>Cerchas metálicas</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Patologías Detectadas en Superestructura</label>
+                        <div class="checkbox-group" id="patologiasSuper">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="super_fisuras" value="fisuras">
+                                <label for="super_fisuras">Fisuras/Grietas estructurales (longitudinales o diagonales)</label>
+                            </div>
+                            <div class="severity-selector" id="severity_super_fisuras">
+                                <label><strong>Nivel de Severidad:</strong></label>
+                                <div class="severity-scale">
+                                    <div class="severity-option severity-1">
+                                        <input type="radio" name="sev_super_fisuras" value="1" id="sev_sf_1">
+                                        <label for="sev_sf_1" style="cursor: pointer;">1<br>Crítico</label>
+                                    </div>
+                                    <div class="severity-option severity-2">
+                                        <input type="radio" name="sev_super_fisuras" value="2" id="sev_sf_2">
+                                        <label for="sev_sf_2" style="cursor: pointer;">2<br>Malo</label>
+                                    </div>
+                                    <div class="severity-option severity-3">
+                                        <input type="radio" name="sev_super_fisuras" value="3" id="sev_sf_3">
+                                        <label for="sev_sf_3" style="cursor: pointer;">3<br>Regular</label>
+                                    </div>
+                                    <div class="severity-option severity-4">
+                                        <input type="radio" name="sev_super_fisuras" value="4" id="sev_sf_4">
+                                        <label for="sev_sf_4" style="cursor: pointer;">4<br>Bueno</label>
+                                    </div>
+                                    <div class="severity-option severity-5">
+                                        <input type="radio" name="sev_super_fisuras" value="5" id="sev_sf_5">
+                                        <label for="sev_sf_5" style="cursor: pointer;">5<br>Excelente</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="super_corrosion" value="corrosion">
+                                <label for="super_corrosion">Exposición y corrosión de acero de refuerzo / Oxidación de cables</label>
+                            </div>
+                            <div class="severity-selector" id="severity_super_corrosion">
+                                <label><strong>Nivel de Severidad:</strong></label>
+                                <div class="severity-scale">
+                                    <div class="severity-option severity-1">
+                                        <input type="radio" name="sev_super_corrosion" value="1" id="sev_sc_1">
+                                        <label for="sev_sc_1" style="cursor: pointer;">1<br>Crítico</label>
+                                    </div>
+                                    <div class="severity-option severity-2">
+                                        <input type="radio" name="sev_super_corrosion" value="2" id="sev_sc_2">
+                                        <label for="sev_sc_2" style="cursor: pointer;">2<br>Malo</label>
+                                    </div>
+                                    <div class="severity-option severity-3">
+                                        <input type="radio" name="sev_super_corrosion" value="3" id="sev_sc_3">
+                                        <label for="sev_sc_3" style="cursor: pointer;">3<br>Regular</label>
+                                    </div>
+                                    <div class="severity-option severity-4">
+                                        <input type="radio" name="sev_super_corrosion" value="4" id="sev_sc_4">
+                                        <label for="sev_sc_4" style="cursor: pointer;">4<br>Bueno</label>
+                                    </div>
+                                    <div class="severity-option severity-5">
+                                        <input type="radio" name="sev_super_corrosion" value="5" id="sev_sc_5">
+                                        <label for="sev_sc_5" style="cursor: pointer;">5<br>Excelente</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="super_deflexion" value="deflexion">
+                                <label for="super_deflexion">Deflexiones visibles o hundimiento del tablero</label>
+                            </div>
+                            <div class="severity-selector" id="severity_super_deflexion">
+                                <label><strong>Nivel de Severidad:</strong></label>
+                                <div class="severity-scale">
+                                    <div class="severity-option severity-1">
+                                        <input type="radio" name="sev_super_deflexion" value="1" id="sev_sd_1">
+                                        <label for="sev_sd_1" style="cursor: pointer;">1<br>Crítico</label>
+                                    </div>
+                                    <div class="severity-option severity-2">
+                                        <input type="radio" name="sev_super_deflexion" value="2" id="sev_sd_2">
+                                        <label for="sev_sd_2" style="cursor: pointer;">2<br>Malo</label>
+                                    </div>
+                                    <div class="severity-option severity-3">
+                                        <input type="radio" name="sev_super_deflexion" value="3" id="sev_sd_3">
+                                        <label for="sev_sd_3" style="cursor: pointer;">3<br>Regular</label>
+                                    </div>
+                                    <div class="severity-option severity-4">
+                                        <input type="radio" name="sev_super_deflexion" value="4" id="sev_sd_4">
+                                        <label for="sev_sd_4" style="cursor: pointer;">4<br>Bueno</label>
+                                    </div>
+                                    <div class="severity-option severity-5">
+                                        <input type="radio" name="sev_super_deflexion" value="5" id="sev_sd_5">
+                                        <label for="sev_sd_5" style="cursor: pointer;">5<br>Excelente</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="super_impacto" value="impacto">
+                                <label for="super_impacto">Daño por impacto vehicular (concreto roto/acero cortado)</label>
+                            </div>
+                            <div class="severity-selector" id="severity_super_impacto">
+                                <label><strong>Nivel de Severidad:</strong></label>
+                                <div class="severity-scale">
+                                    <div class="severity-option severity-1">
+                                        <input type="radio" name="sev_super_impacto" value="1" id="sev_si_1">
+                                        <label for="sev_si_1" style="cursor: pointer;">1<br>Crítico</label>
+                                    </div>
+                                    <div class="severity-option severity-2">
+                                        <input type="radio" name="sev_super_impacto" value="2" id="sev_si_2">
+                                        <label for="sev_si_2" style="cursor: pointer;">2<br>Malo</label>
+                                    </div>
+                                    <div class="severity-option severity-3">
+                                        <input type="radio" name="sev_super_impacto" value="3" id="sev_si_3">
+                                        <label for="sev_si_3" style="cursor: pointer;">3<br>Regular</label>
+                                    </div>
+                                    <div class="severity-option severity-4">
+                                        <input type="radio" name="sev_super_impacto" value="4" id="sev_si_4">
+                                        <label for="sev_si_4" style="cursor: pointer;">4<br>Bueno</label>
+                                    </div>
+                                    <div class="severity-option severity-5">
+                                        <input type="radio" name="sev_super_impacto" value="5" id="sev_si_5">
+                                        <label for="sev_si_5" style="cursor: pointer;">5<br>Excelente</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Fotografía de Superestructura <span class="required">*</span></label>
+                        <div class="photo-upload" onclick="document.getElementById('fotoSuper').click()">
+                            <div class="photo-icon">📷</div>
+                            <p><strong>Click para subir foto del intradós y daños</strong></p>
+                            <p style="color: var(--text-secondary); font-size: 0.9rem;">Formatos: JPG, PNG (Max 5MB)</p>
+                            <input type="file" id="fotoSuper" accept="image/*" capture="environment" required>
+                        </div>
+                    </div>
+
+                    <!-- 3.2 Subestructura -->
+                    <h3 style="margin: 2rem 0 1rem; color: var(--primary); font-size: 1.25rem;">3.2 Subestructura (Pilas y Estribos)</h3>
+
+                    <div class="form-group">
+                        <label>Tipo de Subestructura <span class="required">*</span></label>
+                        <select id="tipoSubestructura" required>
+                            <option value="">Seleccionar...</option>
+                            <option>Pilas circulares</option>
+                            <option>Muro pantalla</option>
+                            <option>Pilas múltiples</option>
+                            <option>Estribos cerrados</option>
+                            <option>Muros Tilt-up</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Patologías Detectadas en Subestructura</label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="sub_inclinacion" value="inclinacion">
+                                <label for="sub_inclinacion">Inclinación, desplome o asentamiento visible</label>
+                            </div>
+                            <div class="severity-selector" id="severity_sub_inclinacion">
+                                <label><strong>Nivel de Severidad:</strong></label>
+                                <div class="severity-scale">
+                                    <div class="severity-option severity-1">
+                                        <input type="radio" name="sev_sub_inclinacion" value="1" id="sev_subi_1">
+                                        <label for="sev_subi_1" style="cursor: pointer;">1<br>Crítico</label>
+                                    </div>
+                                    <div class="severity-option severity-2">
+                                        <input type="radio" name="sev_sub_inclinacion" value="2" id="sev_subi_2">
+                                        <label for="sev_subi_2" style="cursor: pointer;">2<br>Malo</label>
+                                    </div>
+                                    <div class="severity-option severity-3">
+                                        <input type="radio" name="sev_sub_inclinacion" value="3" id="sev_subi_3">
+                                        <label for="sev_subi_3" style="cursor: pointer;">3<br>Regular</label>
+                                    </div>
+                                    <div class="severity-option severity-4">
+                                        <input type="radio" name="sev_sub_inclinacion" value="4" id="sev_subi_4">
+                                        <label for="sev_subi_4" style="cursor: pointer;">4<br>Bueno</label>
+                                    </div>
+                                    <div class="severity-option severity-5">
+                                        <input type="radio" name="sev_sub_inclinacion" value="5" id="sev_subi_5">
+                                        <label for="sev_subi_5" style="cursor: pointer;">5<br>Excelente</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="sub_grietas" value="grietas">
+                                <label for="sub_grietas">Grietas estructurales en capitel o columnas</label>
+                            </div>
+                            <div class="severity-selector" id="severity_sub_grietas">
+                                <label><strong>Nivel de Severidad:</strong></label>
+                                <div class="severity-scale">
+                                    <div class="severity-option severity-1">
+                                        <input type="radio" name="sev_sub_grietas" value="1" id="sev_subg_1">
+                                        <label for="sev_subg_1" style="cursor: pointer;">1<br>Crítico</label>
+                                    </div>
+                                    <div class="severity-option severity-2">
+                                        <input type="radio" name="sev_sub_grietas" value="2" id="sev_subg_2">
+                                        <label for="sev_subg_2" style="cursor: pointer;">2<br>Malo</label>
+                                    </div>
+                                    <div class="severity-option severity-3">
+                                        <input type="radio" name="sev_sub_grietas" value="3" id="sev_subg_3">
+                                        <label for="sev_subg_3" style="cursor: pointer;">3<br>Regular</label>
+                                    </div>
+                                    <div class="severity-option severity-4">
+                                        <input type="radio" name="sev_sub_grietas" value="4" id="sev_subg_4">
+                                        <label for="sev_subg_4" style="cursor: pointer;">4<br>Bueno</label>
+                                    </div>
+                                    <div class="severity-option severity-5">
+                                        <input type="radio" name="sev_sub_grietas" value="5" id="sev_subg_5">
+                                        <label for="sev_subg_5" style="cursor: pointer;">5<br>Excelente</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="sub_pandeo" value="pandeo">
+                                <label for="sub_pandeo">Pandeo lateral de pilas</label>
+                            </div>
+                            <div class="severity-selector" id="severity_sub_pandeo">
+                                <label><strong>Nivel de Severidad:</strong></label>
+                                <div class="severity-scale">
+                                    <div class="severity-option severity-1">
+                                        <input type="radio" name="sev_sub_pandeo" value="1" id="sev_subp_1">
+                                        <label for="sev_subp_1" style="cursor: pointer;">1<br>Crítico</label>
+                                    </div>
+                                    <div class="severity-option severity-2">
+                                        <input type="radio" name="sev_sub_pandeo" value="2" id="sev_subp_2">
+                                        <label for="sev_subp_2" style="cursor: pointer;">2<br>Malo</label>
+                                    </div>
+                                    <div class="severity-option severity-3">
+                                        <input type="radio" name="sev_sub_pandeo" value="3" id="sev_subp_3">
+                                        <label for="sev_subp_3" style="cursor: pointer;">3<br>Regular</label>
+                                    </div>
+                                    <div class="severity-option severity-4">
+                                        <input type="radio" name="sev_sub_pandeo" value="4" id="sev_subp_4">
+                                        <label for="sev_subp_4" style="cursor: pointer;">4<br>Bueno</label>
+                                    </div>
+                                    <div class="severity-option severity-5">
+                                        <input type="radio" name="sev_sub_pandeo" value="5" id="sev_subp_5">
+                                        <label for="sev_subp_5" style="cursor: pointer;">5<br>Excelente</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="sub_anclaje" value="anclaje">
+                                <label for="sub_anclaje">Falta de anclaje mecánico en muros laterales (casos tilt-up)</label>
+                            </div>
+                            <div class="severity-selector" id="severity_sub_anclaje">
+                                <label><strong>Nivel de Severidad:</strong></label>
+                                <div class="severity-scale">
+                                    <div class="severity-option severity-1">
+                                        <input type="radio" name="sev_sub_anclaje" value="1" id="sev_suba_1">
+                                        <label for="sev_suba_1" style="cursor: pointer;">1<br>Crítico</label>
+                                    </div>
+                                    <div class="severity-option severity-2">
+                                        <input type="radio" name="sev_sub_anclaje" value="2" id="sev_suba_2">
+                                        <label for="sev_suba_2" style="cursor: pointer;">2<br>Malo</label>
+                                    </div>
+                                    <div class="severity-option severity-3">
+                                        <input type="radio" name="sev_sub_anclaje" value="3" id="sev_suba_3">
+                                        <label for="sev_suba_3" style="cursor: pointer;">3<br>Regular</label>
+                                    </div>
+                                    <div class="severity-option severity-4">
+                                        <input type="radio" name="sev_sub_anclaje" value="4" id="sev_suba_4">
+                                        <label for="sev_suba_4" style="cursor: pointer;">4<br>Bueno</label>
+                                    </div>
+                                    <div class="severity-option severity-5">
+                                        <input type="radio" name="sev_sub_anclaje" value="5" id="sev_suba_5">
+                                        <label for="sev_suba_5" style="cursor: pointer;">5<br>Excelente</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Fotografía de Subestructura <span class="required">*</span></label>
+                        <div class="photo-upload" onclick="document.getElementById('fotoSub').click()">
+                            <div class="photo-icon">📷</div>
+                            <p><strong>Click para subir foto de base de pilas y estribos</strong></p>
+                            <p style="color: var(--text-secondary); font-size: 0.9rem;">Formatos: JPG, PNG (Max 5MB)</p>
+                            <input type="file" id="fotoSub" accept="image/*" capture="environment" required>
+                        </div>
+                    </div>
+
+                    <!-- 3.3 Entorno Hidráulico -->
+                    <h3 style="margin: 2rem 0 1rem; color: var(--primary); font-size: 1.25rem;">3.3 Entorno Hidráulico y Fundación</h3>
+
+                    <div class="form-group">
+                        <label>¿Existe cruce sobre agua? <span class="required">*</span></label>
+                        <select id="cruceAgua" required>
+                            <option value="">Seleccionar...</option>
+                            <option value="si">Sí</option>
+                            <option value="no">No</option>
+                        </select>
+                    </div>
+
+                    <div id="hidraulicoSection" class="hidden">
+                        <div class="form-group">
+                            <label>Patologías Hidráulicas</label>
+                            <div class="checkbox-group">
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="hid_socavacion" value="socavacion">
+                                    <label for="hid_socavacion">Socavación crítica (erosión que expone zapatas o pilotes)</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="hid_protecciones" value="protecciones">
+                                    <label for="hid_protecciones">Estado deficiente de protecciones (gaviones/enrocados dañados)</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="hid_obstruccion" value="obstruccion">
+                                    <label for="hid_obstruccion">Obstrucción del cauce (basura, vegetación, sedimentos)</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Fotografía del Entorno Hidráulico</label>
+                            <div class="photo-upload" onclick="document.getElementById('fotoHidraulico').click()">
+                                <div class="photo-icon">📷</div>
+                                <p><strong>Click para subir foto de línea de agua y cimentación</strong></p>
+                                <input type="file" id="fotoHidraulico" accept="image/*" capture="environment">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3.4 Elementos Funcionales -->
+                    <h3 style="margin: 2rem 0 1rem; color: var(--primary); font-size: 1.25rem;">3.4 Elementos Funcionales y Seguridad</h3>
+
+                    <div class="form-group">
+                        <label>Estado de Juntas de Expansión</label>
+                        <select id="estadoJuntas">
+                            <option value="">Seleccionar...</option>
+                            <option value="5">Excelente - Sin daños</option>
+                            <option value="4">Bueno - Daños menores</option>
+                            <option value="3">Regular - Filtraciones leves</option>
+                            <option value="2">Malo - Rotura/Juntas bloqueadas</option>
+                            <option value="1">Crítico - Falla total</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Estado de Seguridad Vial (Barandas)</label>
+                        <select id="estadoBarandas">
+                            <option value="">Seleccionar...</option>
+                            <option value="5">Excelente - Sin daños</option>
+                            <option value="4">Bueno - Funcional</option>
+                            <option value="3">Regular - Deformaciones leves</option>
+                            <option value="2">Malo - Barandas dañadas</option>
+                            <option value="1">Crítico - Ausentes o colapsadas</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Estado del Drenaje</label>
+                        <select id="estadoDrenaje">
+                            <option value="">Seleccionar...</option>
+                            <option value="5">Excelente - Funcional</option>
+                            <option value="4">Bueno - Funcional con limpieza menor</option>
+                            <option value="3">Regular - Obstrucción parcial</option>
+                            <option value="2">Malo - Obstrucción severa</option>
+                            <option value="1">Crítico - Sistema colapsado</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Estado de Superficie de Rodadura</label>
+                        <select id="estadoSuperficie">
+                            <option value="">Seleccionar...</option>
+                            <option value="5">Excelente - Sin daños</option>
+                            <option value="4">Bueno - Daños superficiales</option>
+                            <option value="3">Regular - Baches menores</option>
+                            <option value="2">Malo - Baches profundos/grietas</option>
+                            <option value="1">Crítico - Superficie colapsada</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN 4: CONDICIÓN GENERAL Y RECOMENDACIONES -->
+                <div class="section" data-section="4">
+                    <div class="section-header">
+                        <div class="section-number">4</div>
+                        <h2 class="section-title">Condición General y Recomendaciones</h2>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Índice de Condición General (Calculado Automáticamente)</label>
+                        <div style="padding: 1.5rem; background: var(--bg-main); border-radius: 12px; border: 2px solid var(--border);">
+                            <p style="font-size: 1.5rem; font-weight: 700; color: var(--primary); margin-bottom: 0.5rem;">
+                                CG: <span id="condicionCalculada">--</span>/5
+                            </p>
+                            <div id="condicionIndicator"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Recomendaciones Técnicas <span class="required">*</span></label>
+                        <select id="recomendaciones" required multiple style="height: 150px;">
+                            <option value="mantenimiento_preventivo">Mantenimiento preventivo/rutinario</option>
+                            <option value="reparacion_juntas">Reparación de juntas y drenajes</option>
+                            <option value="inspeccion_detallada">Inspección Detallada Urgente (ID)</option>
+                            <option value="restriccion_carga">Restricción de carga pesada</option>
+                            <option value="cierre_inmediato">Cierre inmediato</option>
+                            <option value="reemplazo_total">Reemplazo total de la estructura</option>
+                        </select>
+                        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 0.5rem;">
+                            Mantén presionado Ctrl (Cmd en Mac) para seleccionar múltiples opciones
+                        </p>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Observaciones Adicionales</label>
+                        <textarea id="observaciones" placeholder="Describa cualquier situación particular, riesgo adicional o detalle relevante..."></textarea>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN DE ENVÍO -->
+                <div class="submit-section">
+                    <div class="alert alert-info">
+                        ℹ️ <strong>Antes de enviar:</strong> Verifique que todas las fotografías obligatorias estén adjuntas y que las coordenadas GPS hayan sido capturadas.
+                    </div>
+                    <button type="submit" class="submit-button">
+                        ✅ Enviar Formulario de Inspección
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // GESTIÓN DE PROGRESO
+        // ============================================
+        function updateProgress() {
+            const form = document.getElementById('inspectionForm');
+            const inputs = form.querySelectorAll('input:required, select:required, textarea:required');
+            let filled = 0;
+            
+            inputs.forEach(input => {
+                if (input.type === 'checkbox' || input.type === 'radio') {
+                    // Para checkboxes/radios, verificar si al menos uno está marcado
+                    const name = input.name || input.id;
+                    const group = form.querySelectorAll(`[name="${name}"]`);
+                    if (Array.from(group).some(i => i.checked)) filled++;
+                } else if (input.value.trim() !== '') {
+                    filled++;
+                }
+            });
+            
+            const percentage = (filled / inputs.length) * 100;
+            document.getElementById('progressFill').style.width = percentage + '%';
+        }
+
+        // ============================================
+        // CAPTURA DE GPS
+        // ============================================
+        document.getElementById('gpsButton').addEventListener('click', function() {
+            if ('geolocation' in navigator) {
+                this.innerHTML = '⏳ Obteniendo ubicación...';
+                this.disabled = true;
+                
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const lat = position.coords.latitude.toFixed(6);
+                        const lng = position.coords.longitude.toFixed(6);
+                        
+                        document.getElementById('latitud').value = lat;
+                        document.getElementById('longitud').value = lng;
+                        document.getElementById('latValue').textContent = lat;
+                        document.getElementById('lngValue').textContent = lng;
+                        document.getElementById('coordinatesDisplay').classList.add('active');
+                        
+                        this.innerHTML = '✅ Ubicación Capturada';
+                        this.style.background = 'linear-gradient(135deg, #10B981, #059669)';
+                        updateProgress();
+                    },
+                    (error) => {
+                        alert('Error al obtener la ubicación: ' + error.message);
+                        this.innerHTML = '📍 Capturar Ubicación GPS';
+                        this.disabled = false;
+                    }
+                );
+            } else {
+                alert('Tu navegador no soporta geolocalización');
+            }
+        });
+
+        // ============================================
+        // LÓGICA DE SALTOS - PATOLOGÍAS CON SEVERIDAD
+        // ============================================
+        const patologiaCheckboxes = document.querySelectorAll('.checkbox-item input[type="checkbox"]');
+        
+        patologiaCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const severityId = 'severity_' + this.id;
+                const severitySection = document.getElementById(severityId);
+                
+                if (severitySection) {
+                    if (this.checked) {
+                        severitySection.classList.add('active');
+                    } else {
+                        severitySection.classList.remove('active');
+                        // Desmarcar radios cuando se desmarca el checkbox
+                        const radios = severitySection.querySelectorAll('input[type="radio"]');
+                        radios.forEach(radio => radio.checked = false);
+                    }
+                }
+            });
+        });
+
+        // ============================================
+        // MANEJO DE ESCALA DE SEVERIDAD (VISUAL)
+        // ============================================
+        const severityOptions = document.querySelectorAll('.severity-option');
+        
+        severityOptions.forEach(option => {
+            option.addEventListener('click', function() {
+                const radio = this.querySelector('input[type="radio"]');
+                if (radio) {
+                    radio.checked = true;
+                    
+                    // Actualizar estilos visuales
+                    const parent = this.parentElement;
+                    parent.querySelectorAll('.severity-option').forEach(opt => {
+                        opt.style.background = 'white';
+                        opt.style.color = 'var(--text-primary)';
+                    });
+                    
+                    this.style.background = 'var(--primary)';
+                    this.style.color = 'white';
+                }
+            });
+        });
+
+        // ============================================
+        // ALERTA DE CÓDIGO SÍSMICO
+        // ============================================
+        document.getElementById('anioConstruccion').addEventListener('change', function() {
+            const anio = parseInt(this.value);
+            const alertSismico = document.getElementById('alertSismico');
+            
+            if (anio && anio < 2011) {
+                alertSismico.style.display = 'flex';
+            } else {
+                alertSismico.style.display = 'none';
+            }
+        });
+
+        // ============================================
+        // SECCIÓN HIDRÁULICA CONDICIONAL
+        // ============================================
+        document.getElementById('cruceAgua').addEventListener('change', function() {
+            const hidraulicoSection = document.getElementById('hidraulicoSection');
+            
+            if (this.value === 'si') {
+                hidraulicoSection.classList.remove('hidden');
+            } else {
+                hidraulicoSection.classList.add('hidden');
+            }
+        });
+
+        // ============================================
+        // CÁLCULO DE CONDICIÓN GENERAL
+        // ============================================
+        function calcularCondicionGeneral() {
+            const severidades = [];
+            
+            // Recolectar todas las severidades marcadas
+            const radiosChecked = document.querySelectorAll('input[type="radio"]:checked[name^="sev_"]');
+            radiosChecked.forEach(radio => {
+                severidades.push(parseInt(radio.value));
+            });
+            
+            // Agregar estados de elementos funcionales
+            const estadoJuntas = document.getElementById('estadoJuntas').value;
+            const estadoBarandas = document.getElementById('estadoBarandas').value;
+            const estadoDrenaje = document.getElementById('estadoDrenaje').value;
+            const estadoSuperficie = document.getElementById('estadoSuperficie').value;
+            
+            if (estadoJuntas) severidades.push(parseInt(estadoJuntas));
+            if (estadoBarandas) severidades.push(parseInt(estadoBarandas));
+            if (estadoDrenaje) severidades.push(parseInt(estadoDrenaje));
+            if (estadoSuperficie) severidades.push(parseInt(estadoSuperficie));
+            
+            if (severidades.length === 0) {
+                document.getElementById('condicionCalculada').textContent = '--';
+                document.getElementById('condicionIndicator').innerHTML = '';
+                return;
+            }
+            
+            // El elemento más deteriorado determina la condición
+            const condicion = Math.min(...severidades);
+            document.getElementById('condicionCalculada').textContent = condicion;
+            
+            // Mostrar indicador visual
+            let indicatorClass = '';
+            let indicatorText = '';
+            
+            switch(condicion) {
+                case 1:
+                    indicatorClass = 'condition-critical';
+                    indicatorText = 'CRÍTICO - Riesgo inminente';
+                    break;
+                case 2:
+                    indicatorClass = 'condition-poor';
+                    indicatorText = 'MALO - Requiere intervención urgente';
+                    break;
+                case 3:
+                    indicatorClass = 'condition-fair';
+                    indicatorText = 'REGULAR - Planificar reparaciones';
+                    break;
+                case 4:
+                    indicatorClass = 'condition-good';
+                    indicatorText = 'BUENO - Mantenimiento preventivo';
+                    break;
+                case 5:
+                    indicatorClass = 'condition-excellent';
+                    indicatorText = 'EXCELENTE - Estado óptimo';
+                    break;
+            }
+            
+            document.getElementById('condicionIndicator').innerHTML = 
+                `<span class="condition-indicator ${indicatorClass}">${indicatorText}</span>`;
+        }
+
+        // Recalcular cuando cambien las severidades o estados
+        document.querySelectorAll('input[type="radio"][name^="sev_"], #estadoJuntas, #estadoBarandas, #estadoDrenaje, #estadoSuperficie')
+            .forEach(element => {
+                element.addEventListener('change', calcularCondicionGeneral);
+            });
+
+        // ============================================
+        // VALIDACIÓN Y ENVÍO DEL FORMULARIO
+        // ============================================
+        document.getElementById('inspectionForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Validar GPS
+            if (!document.getElementById('latitud').value || !document.getElementById('longitud').value) {
+                alert('⚠️ ERROR: Debe capturar las coordenadas GPS antes de enviar el formulario.');
+                document.getElementById('gpsButton').scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return;
+            }
+            
+            // Validar fotos
+            const fotoSuper = document.getElementById('fotoSuper').files.length;
+            const fotoSub = document.getElementById('fotoSub').files.length;
+            
+            if (fotoSuper === 0 || fotoSub === 0) {
+                alert('⚠️ ERROR: Debe adjuntar las fotografías obligatorias de superestructura y subestructura.');
+                return;
+            }
+            
+            // Validar foto hidráulica si aplica
+            if (document.getElementById('cruceAgua').value === 'si') {
+                const fotoHidraulico = document.getElementById('fotoHidraulico').files.length;
+                if (fotoHidraulico === 0) {
+                    const confirmar = confirm('No ha adjuntado foto del entorno hidráulico. ¿Desea continuar sin ella?');
+                    if (!confirmar) return;
+                }
+            }
+            
+            // Si llegó aquí, validación exitosa
+            alert('✅ FORMULARIO VALIDADO CORRECTAMENTE\n\n' +
+                  'Los datos han sido recopilados exitosamente.\n' +
+                  'En un sistema real, aquí se enviarían los datos al servidor.\n\n' +
+                  'Condición General: ' + document.getElementById('condicionCalculada').textContent + '/5');
+            
+            // Aquí iría la lógica de envío real al servidor
+            // fetch('/api/inspecciones', { method: 'POST', body: new FormData(this) })
+        });
+
+        // ============================================
+        // ACTUALIZAR PROGRESO EN TIEMPO REAL
+        // ============================================
+        document.querySelectorAll('input, select, textarea').forEach(element => {
+            element.addEventListener('change', updateProgress);
+            element.addEventListener('input', updateProgress);
+        });
+
+        // Actualización inicial del progreso
+        updateProgress();
+    </script>
+</body>
+</html>
