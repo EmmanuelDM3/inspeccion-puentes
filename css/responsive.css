@@ -1,1 +1,21 @@
+@media (max-width: 768px) {
+            .input-group {
+                grid-template-columns: 1fr;
+            }
 
+            .severity-options {
+                flex-direction: column;
+                }
+
+            .severity-btn {
+                min-width: 100%;
+                }
+
+            .form-content {
+                padding: 30px 20px;
+                }
+
+            h1 {
+                font-size: 24px;
+                }
+            }
