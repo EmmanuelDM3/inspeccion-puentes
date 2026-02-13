@@ -1338,14 +1338,64 @@
                 }
             }
             
-            // Si llegó aquí, validación exitosa
-            alert('✅ FORMULARIO VALIDADO CORRECTAMENTE\n\n' +
-                  'Los datos han sido recopilados exitosamente.\n' +
-                  'En un sistema real, aquí se enviarían los datos al servidor.\n\n' +
-                  'Condición General: ' + document.getElementById('condicionCalculada').textContent + '/5');
+            // ============================================
+            // ENVÍO REAL A POWER AUTOMATE
+            // ============================================
             
-            // Aquí iría la lógica de envío real al servidor
-            // fetch('/api/inspecciones', { method: 'POST', body: new FormData(this) })
+            const fotoSuperFile = document.getElementById('fotoSuper').files[0];
+            const fotoSubFile = document.getElementById('fotoSub').files[0];
+            const fotoHidraulicoFile = document.getElementById('fotoHidraulico')?.files[0];
+            
+            function toBase64(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.readAsDataURL(file);
+                    reader.onload = () => resolve(reader.result.split(',')[1]);
+                    reader.onerror = error => reject(error);
+                });
+            }
+            
+            Promise.all([
+                toBase64(fotoSuperFile),
+                toBase64(fotoSubFile),
+                fotoHidraulicoFile ? toBase64(fotoHidraulicoFile) : Promise.resolve(null)
+            ]).then(([fotoSuperBase64, fotoSubBase64, fotoHidraulicoBase64]) => {
+            
+                const data = {
+                    puenteId: document.getElementById('puenteId').value,
+                    nombreEstructura: document.getElementById('nombreEstructura').value,
+                    provincia: document.getElementById('provincia').value,
+                    municipio: document.getElementById('municipio').value,
+                    latitud: parseFloat(document.getElementById('latitud').value),
+                    longitud: parseFloat(document.getElementById('longitud').value),
+                    anioConstruccion: parseInt(document.getElementById('anioConstruccion').value),
+                    tipoInfraestructura: document.getElementById('tipoInfraestructura').value,
+                    condicionGeneral: parseInt(document.getElementById('condicionCalculada').textContent),
+                    recomendaciones: Array.from(document.getElementById('recomendaciones').selectedOptions).map(o => o.value).join(','),
+                    observaciones: document.getElementById('observaciones').value,
+                    fotoSuper: fotoSuperBase64,
+                    fotoSub: fotoSubBase64,
+                    fotoHidraulico: fotoHidraulicoBase64
+                };
+            
+                fetch("PEGA_AQUI_LA_URL_DEL_FLUJO", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(() => {
+                    alert("✅ Formulario enviado correctamente.");
+                    document.getElementById('inspectionForm').reset();
+                })
+                .catch(error => {
+                    alert("❌ Error al enviar el formulario.");
+                    console.error(error);
+                });
+            
+            });
+
         });
 
         // ============================================
