@@ -16,7 +16,7 @@
             }
         }
 
-/ Preview de fotos
+// Preview de fotos
         function previewPhoto(id) {
             const input = document.getElementById('photo_' + id);
             const preview = document.getElementById('preview_' + id);
