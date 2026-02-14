@@ -4,6 +4,54 @@
  */
 const ROOT_FOLDER_ID = 'REEMPLAZAR_CON_ID_DE_CARPETA_RAIZ';
 
+const OBLIGATORIAS_PRF_MAP = {
+  foto_vista1: 'PRF_001',
+  foto_vista2: 'PRF_002',
+  foto_tablero: 'PRF_003',
+  foto_super: 'PRF_004',
+  foto_sub: 'PRF_005',
+  foto_cauce: 'PRF_006'
+};
+
+
+const CAMPOS_OPCIONALES = [
+  'photo_fisuras',
+  'photo_corrosion',
+  'photo_deflexiones',
+  'photo_impacto',
+  'photo_humedad',
+  'photo_juntas_estado',
+  'photo_juntas_limpieza',
+  'photo_carpeta',
+  'photo_drenaje',
+  'photo_estribos_integridad',
+  'photo_estribos_alineacion',
+  'photo_asentamiento',
+  'photo_pilares_integridad',
+  'photo_pilares_verticalidad',
+  'photo_pilares_corrosion',
+  'photo_apoyos',
+  'photo_cabezal',
+  'photo_impacto_fundacion',
+  'photo_socavacion',
+  'photo_lavado',
+  'photo_protecciones',
+  'photo_obstruccion',
+  'photo_vegetacion',
+  'photo_gaviones_talud',
+  'photo_erosion_taludes',
+  'photo_barandas',
+  'photo_superficie_rodadura',
+  'photo_ancho_calzada_eval',
+  'photo_galibo',
+  'photo_otros'
+];
+
+const OPCIONALES_MAP = CAMPOS_OPCIONALES.reduce(function(acumulado, campo, index) {
+  acumulado[campo] = `OPC_${String(index + 1).padStart(3, '0')}`;
+  return acumulado;
+}, {});
+
 function doPost(e) {
   try {
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
@@ -26,7 +74,7 @@ function doPost(e) {
 
     const fotos = parseFotos(d.fotos);
     const carpetaPuente = crearCarpetaPuente(d.puenteCarpeta || d.nombreEstructura || d.identificador || 'Puente_sin_nombre');
-    guardarFotosEnCarpeta(carpetaPuente, fotos);
+    const resultadoGuardado = guardarFotosEnCarpeta(carpetaPuente, fotos);
 
     sheet.appendRow([
       new Date(),
@@ -51,7 +99,9 @@ function doPost(e) {
       .createTextOutput(JSON.stringify({
         ok: true,
         folderUrl: carpetaPuente.getUrl(),
-        fotosGuardadas: fotos.length
+        fotosGuardadas: resultadoGuardado.totalGuardadas,
+        fotosObligatoriasGuardadas: resultadoGuardado.obligatoriasGuardadas,
+        fotosOpcionalesGuardadas: resultadoGuardado.opcionalesGuardadas
       }))
       .setMimeType(ContentService.MimeType.JSON);
   } catch (error) {
@@ -84,18 +134,82 @@ function crearCarpetaPuente(nombreBase) {
   return raiz.createFolder(nombreFinal);
 }
 
-function guardarFotosEnCarpeta(carpeta, fotos) {
+function guardarFotosEnCarpeta(carpetaPuente, fotos) {
+  const fechaBase = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyyMMdd_HHmmss');
+
+  const carpetaObligatorias = carpetaPuente.createFolder('01_Obligatorias');
+  const carpetaOpcionales = carpetaPuente.createFolder('02_Opcionales');
+  const subcarpetasOpcionales = crearSubcarpetasOpcionales(carpetaOpcionales);
+
+  let totalGuardadas = 0;
+  let obligatoriasGuardadas = 0;
+  let opcionalesGuardadas = 0;
+
   fotos.forEach(function(foto, index) {
     if (!foto || !foto.contenidoBase64) return;
 
     const bytes = Utilities.base64Decode(foto.contenidoBase64);
     const tipoMime = foto.tipoMime || 'application/octet-stream';
-    const nombreOriginal = foto.nombre || `foto_${index + 1}`;
-    const nombreArchivo = `${String(index + 1).padStart(2, '0')}_${sanitizarNombre(nombreOriginal)}`;
+    const campo = sanitizarNombre(foto.campo || `campo_${index + 1}`);
+    const extension = obtenerExtensionArchivo(foto.nombre, tipoMime);
+    const sufijoSecuencia = `${fechaBase}_${String(index + 1).padStart(3, '0')}`;
+
+    let carpetaDestino = carpetaOpcionales;
+    let nombreArchivo = '';
+
+    if (OBLIGATORIAS_PRF_MAP[campo]) {
+      carpetaDestino = carpetaObligatorias;
+      nombreArchivo = `${OBLIGATORIAS_PRF_MAP[campo]}_${sufijoSecuencia}.${extension}`;
+      obligatoriasGuardadas += 1;
+    } else {
+      carpetaDestino = subcarpetasOpcionales[campo] || carpetaOpcionales;
+      const codigoOpcional = OPCIONALES_MAP[campo] || 'OPC_999';
+      nombreArchivo = `${codigoOpcional}_${campo}_${sufijoSecuencia}.${extension}`;
+      opcionalesGuardadas += 1;
+    }
 
     const blob = Utilities.newBlob(bytes, tipoMime, nombreArchivo);
-    carpeta.createFile(blob);
+    carpetaDestino.createFile(blob);
+    totalGuardadas += 1;
   });
+
+  return {
+    totalGuardadas,
+    obligatoriasGuardadas,
+    opcionalesGuardadas
+  };
+}
+
+function crearSubcarpetasOpcionales(carpetaOpcionales) {
+  const subcarpetas = {};
+
+  CAMPOS_OPCIONALES.forEach(function(campo) {
+    const codigoOpcional = OPCIONALES_MAP[campo] || 'OPC_999';
+    const nombreSubcarpeta = `${codigoOpcional}_${campo}`;
+    subcarpetas[campo] = carpetaOpcionales.createFolder(nombreSubcarpeta);
+  });
+
+  return subcarpetas;
+}
+
+function obtenerExtensionArchivo(nombreOriginal, tipoMime) {
+  const nombre = String(nombreOriginal || '').trim();
+  const match = nombre.match(/\.([a-zA-Z0-9]{1,8})$/);
+
+  if (match && match[1]) {
+    return match[1].toLowerCase();
+  }
+
+  const mimeMap = {
+    'image/jpeg': 'jpg',
+    'image/jpg': 'jpg',
+    'image/png': 'png',
+    'image/webp': 'webp',
+    'image/heic': 'heic',
+    'image/heif': 'heif'
+  };
+
+  return mimeMap[tipoMime] || 'bin';
 }
 
 function sanitizarNombre(nombre) {
