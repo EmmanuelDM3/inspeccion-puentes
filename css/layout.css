@@ -40,8 +40,9 @@
 .logo-card {
             width: 180px;
             height: 88px;
-            background: rgba(255,255,255,0.15);
-            border: 2px solid rgba(255,255,255,0.3);
+            background: #ffffff;
+            border: 2px solid #dbe3ee;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
             border-radius: 12px;
             display: flex;
             align-items: center;
@@ -53,22 +54,10 @@
             max-width: 100%;
             max-height: 100%;
             object-fit: contain;
+            background: #ffffff;
+            border-radius: 8px;
             }
 
-.logo-helper-text {
-            font-size: 12px;
-            opacity: 0.85;
-            margin-bottom: 20px;
-            position: relative;
-            z-index: 1;
-            }
-
-.logo-helper-text code {
-            background: rgba(255,255,255,0.15);
-            padding: 2px 6px;
-            border-radius: 4px;
-            color: #fff;
-            }
 
 .subtitle {
             font-size: 15px;
