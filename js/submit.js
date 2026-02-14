@@ -55,6 +55,38 @@ function validarReglaCritica() {
     return true;
 }
 
+function leerArchivoComoDataURL(archivo) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => reject(new Error(`No se pudo leer el archivo ${archivo.name}`));
+        reader.readAsDataURL(archivo);
+    });
+}
+
+async function recopilarFotosSeleccionadas() {
+    const inputsFoto = Array.from(document.querySelectorAll('input[type="file"]'));
+    const fotos = [];
+
+    for (const input of inputsFoto) {
+        const archivo = input.files?.[0];
+        if (!archivo) continue;
+
+        const dataURL = await leerArchivoComoDataURL(archivo);
+        const base64 = dataURL.split(',')[1] || '';
+
+        fotos.push({
+            campo: input.id,
+            nombre: archivo.name,
+            tipoMime: archivo.type || 'application/octet-stream',
+            tamanioBytes: archivo.size,
+            contenidoBase64: base64
+        });
+    }
+
+    return fotos;
+}
+
 async function enviarConFallback(scriptURL, params) {
     try {
         const response = await fetch(scriptURL, {
@@ -123,28 +155,32 @@ document.getElementById('inspectionForm').addEventListener('submit', async funct
     submitBtn.textContent = 'Enviando a Base de Datos MOPC...';
     submitBtn.disabled = true;
 
-    // Captura de datos para el Servidor (Metodología AASHTO MBE)
-    const formData = {
-        identificador: document.getElementById('identificador').value,
-        nombreEstructura: document.getElementById('nombreEstructura').value,
-        provincia: document.getElementById('provincia').value,
-        latitud: document.getElementById('latitud').value,
-        longitud: document.getElementById('longitud').value,
-        tipoEstructura: document.getElementById('tipoEstructura').value,
-        califSuper: document.getElementById('calif_superestructura').textContent,
-        califSub: document.getElementById('calif_subestructura').textContent,
-        califCauce: document.getElementById('calif_cauce').textContent,
-        accionRecomendada: document.getElementById('accionRecomendada').value,
-        riesgoIdentificado: document.getElementById('riesgoIdentificado').value
-    };
-
-    // URL de tu motor lógico en Apps Script
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbzHjnQlNfquXFyaFewmBu4JJpEzKiVZ_wDM9hDl_mnqAmcK3SkfEfJ55hygqgcKSy99/exec';
-
-    // Preparar envío
-    const params = new URLSearchParams(formData);
-
     try {
+        const fotos = await recopilarFotosSeleccionadas();
+
+        // Captura de datos para el Servidor (Metodología AASHTO MBE)
+        const formData = {
+            identificador: document.getElementById('identificador').value,
+            nombreEstructura: document.getElementById('nombreEstructura').value,
+            provincia: document.getElementById('provincia').value,
+            latitud: document.getElementById('latitud').value,
+            longitud: document.getElementById('longitud').value,
+            tipoEstructura: document.getElementById('tipoEstructura').value,
+            califSuper: document.getElementById('calif_superestructura').textContent,
+            califSub: document.getElementById('calif_subestructura').textContent,
+            califCauce: document.getElementById('calif_cauce').textContent,
+            accionRecomendada: document.getElementById('accionRecomendada').value,
+            riesgoIdentificado: document.getElementById('riesgoIdentificado').value,
+            puenteCarpeta: document.getElementById('nombreEstructura').value,
+            fotos: JSON.stringify(fotos)
+        };
+
+        // URL de tu motor lógico en Apps Script
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbzHjnQlNfquXFyaFewmBu4JJpEzKiVZ_wDM9hDl_mnqAmcK3SkfEfJ55hygqgcKSy99/exec';
+
+        // Preparar envío
+        const params = new URLSearchParams(formData);
+
         const resultado = await enviarConFallback(scriptURL, params);
 
         if (resultado.modo === 'cors') {
