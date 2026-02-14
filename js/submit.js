@@ -88,6 +88,18 @@ async function enviarConFallback(scriptURL, params) {
     }
 }
 
+
+function limpiarUIEvaluacion() {
+    document.querySelectorAll('.severity-scale').forEach((scale) => {
+        scale.classList.remove('active');
+        scale.querySelectorAll('.severity-btn').forEach((btn) => btn.classList.remove('selected'));
+    });
+
+    document.querySelectorAll('input[id^="severity_value_"]').forEach((input) => {
+        input.value = '';
+    });
+}
+
 function reiniciarResultados() {
     document.getElementById('calif_superestructura').textContent = '-';
     document.getElementById('calif_subestructura').textContent = '-';
@@ -143,6 +155,7 @@ document.getElementById('inspectionForm').addEventListener('submit', async funct
 
         this.reset();
         reiniciarResultados();
+        limpiarUIEvaluacion();
         if (typeof limpiarBorrador === 'function') {
             limpiarBorrador();
         }
