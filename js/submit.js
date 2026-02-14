@@ -232,7 +232,7 @@ document.getElementById('inspectionForm').addEventListener('submit', async funct
         };
 
         // URL de tu motor lógico en Apps Script
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbzHjnQlNfquXFyaFewmBu4JJpEzKiVZ_wDM9hDl_mnqAmcK3SkfEfJ55hygqgcKSy99/exec';
+        const scriptURL = 'https://script.google.com/macros/s/AKfycby_dqUNkyPIDkvd_QCBj-U_MAIhBv8wthqWqqmlTpQKLysGUnUMKJ2V_YNwXwVRsnhM/exec';
 
         // Preparar envío
         const params = new URLSearchParams(formData);
