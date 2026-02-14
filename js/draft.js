@@ -17,6 +17,28 @@ function serializarFormulario(form) {
     return draft;
 }
 
+function sincronizarEstadoVisualEvaluacion(form) {
+    form.querySelectorAll('input[id^="check_"]').forEach((checkbox) => {
+        const id = checkbox.id.replace('check_', '');
+        const scale = document.getElementById(`severity_${id}`);
+        const hidden = document.getElementById(`severity_value_${id}`);
+
+        if (!scale) return;
+
+        if (checkbox.checked) {
+            scale.classList.add('active');
+        } else {
+            scale.classList.remove('active');
+        }
+
+        const selectedLevel = hidden?.value;
+        scale.querySelectorAll('.severity-btn').forEach((btn) => {
+            const matchesLevel = btn.classList.contains(`level-${selectedLevel}`);
+            btn.classList.toggle('selected', Boolean(selectedLevel) && matchesLevel);
+        });
+    });
+}
+
 function aplicarBorrador(form, draft) {
     Object.entries(draft).forEach(([id, value]) => {
         const field = document.getElementById(id);
@@ -29,6 +51,12 @@ function aplicarBorrador(form, draft) {
 
         field.value = value;
     });
+
+    sincronizarEstadoVisualEvaluacion(form);
+
+    if (typeof actualizarVisibilidadFundacion === 'function') {
+        actualizarVisibilidadFundacion();
+    }
 
     if (typeof calcularCalificaciones === 'function') {
         calcularCalificaciones();
