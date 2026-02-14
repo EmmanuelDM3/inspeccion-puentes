@@ -27,16 +27,37 @@
             border-radius: 50%;
             }
 
-.logo-placeholder {
-            background: rgba(255,255,255,0.15);
-            border: 2px dashed rgba(255,255,255,0.3);
-            border-radius: 12px;
-            padding: 30px;
-            margin-bottom: 25px;
-            font-size: 14px;
-            font-weight: 500;
-            letter-spacing: 0.5px;
+.logos-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 18px;
+            margin-bottom: 12px;
+            position: relative;
+            z-index: 1;
             }
+
+.logo-card {
+            width: 180px;
+            height: 88px;
+            background: #ffffff;
+            border: 2px solid #dbe3ee;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            }
+
+.logo-image {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            background: #ffffff;
+            border-radius: 8px;
+            }
+
 
 .subtitle {
             font-size: 15px;
