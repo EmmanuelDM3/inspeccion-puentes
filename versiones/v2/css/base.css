@@ -1,0 +1,40 @@
+:root {
+        --azul-rd: #002D62;
+        --rojo-rd: #CE1126;
+        --blanco: #FFFFFF;
+        --gris-claro: #F5F7FA;
+        --gris-medio: #8B95A5;
+        --gris-oscuro: #374151;
+        --verde-excelente: #059669;
+        --amarillo-advertencia: #D97706;
+        --rojo-critico: #DC2626;
+        --sombra: 0 1px 3px rgba(0,0,0,0.1);
+        --sombra-elevada: 0 10px 25px rgba(0,0,0,0.15);
+        }
+
+* {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        }
+
+body {
+        font-family: 'IBM Plex Sans', sans-serif;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        color: var(--gris-oscuro);
+        line-height: 1.6;
+        padding: 20px;
+        min-height: 100vh;
+        }
+
+h1 {
+        font-family: 'Libre Baskerville', serif;
+        font-size: 28px;
+        font-weight: 700;
+        margin-bottom: 8px;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+.hidden {
+        display: none;
+        }
