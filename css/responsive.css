@@ -18,4 +18,14 @@
             h1 {
                 font-size: 24px;
                 }
+
+            .logos-row {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .logo-card {
+                width: min(260px, 100%);
+            }
+
             }
