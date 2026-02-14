@@ -2,8 +2,8 @@ function validarCoordenadasRD() {
     const lat = parseFloat(document.getElementById('latitud').value);
     const lon = parseFloat(document.getElementById('longitud').value);
 
-    const latValida = !isNaN(lat) && lat >= 17.3 && lat <= 20.2;
-    const lonValida = !isNaN(lon) && lon >= -72.1 && lon <= -68.1;
+    const latValida = !Number.isNaN(lat) && lat >= 17.3 && lat <= 20.2;
+    const lonValida = !Number.isNaN(lon) && lon >= -72.1 && lon <= -68.1;
 
     if (!latValida || !lonValida) {
         showToast('Las coordenadas deben estar dentro de un rango válido para República Dominicana.', 'error');
@@ -115,6 +115,8 @@ async function enviarReporte(scriptURL, params) {
     return payload;
 }
 
+    return payload;
+}
 
 function limpiarUIEvaluacion() {
     document.querySelectorAll('.severity-scale').forEach((scale) => {
@@ -199,7 +201,6 @@ document.getElementById('inspectionForm').addEventListener('submit', async funct
         return;
     }
 
-    // Bloquear botón para evitar múltiples envíos
     const submitBtn = document.querySelector('.submit-btn');
     const submitBtnText = submitBtn.querySelector('.submit-btn-text');
     const originalText = submitBtnText ? submitBtnText.textContent : submitBtn.textContent.trim();
@@ -244,9 +245,7 @@ document.getElementById('inspectionForm').addEventListener('submit', async funct
         this.reset();
         reiniciarResultados();
         limpiarUIEvaluacion();
-        if (typeof limpiarBorrador === 'function') {
-            limpiarBorrador();
-        }
+        if (typeof limpiarBorrador === 'function') limpiarBorrador();
     } catch (error) {
         console.error('Error!', error.message);
         finalizarBarraEnvio(false);
