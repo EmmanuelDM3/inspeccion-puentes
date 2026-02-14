@@ -55,37 +55,64 @@ function validarReglaCritica() {
     return true;
 }
 
-async function enviarConFallback(scriptURL, params) {
-    try {
-        const response = await fetch(scriptURL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
-            },
-            body: params
+function leerArchivoComoDataURL(archivo) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => reject(new Error(`No se pudo leer el archivo ${archivo.name}`));
+        reader.readAsDataURL(archivo);
+    });
+}
+
+async function recopilarFotosSeleccionadas() {
+    const inputsFoto = Array.from(document.querySelectorAll('input[type="file"]'));
+    const fotos = [];
+
+    for (const input of inputsFoto) {
+        const archivo = input.files?.[0];
+        if (!archivo) continue;
+
+        const dataURL = await leerArchivoComoDataURL(archivo);
+        const base64 = dataURL.split(',')[1] || '';
+
+        fotos.push({
+            campo: input.id,
+            nombre: archivo.name,
+            tipoMime: archivo.type || 'application/octet-stream',
+            tamanioBytes: archivo.size,
+            contenidoBase64: base64
         });
-
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-        }
-
-        let payload = null;
-        try {
-            payload = await response.json();
-        } catch (_) {
-            // Backend actual puede no responder JSON.
-        }
-
-        return { modo: 'cors', payload };
-    } catch (corsError) {
-        await fetch(scriptURL, {
-            method: 'POST',
-            mode: 'no-cors',
-            body: params
-        });
-
-        return { modo: 'no-cors' };
     }
+
+    return fotos;
+}
+
+async function enviarReporte(scriptURL, params) {
+    const response = await fetch(scriptURL, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
+        },
+        body: params
+    });
+
+    if (!response.ok) {
+        throw new Error(`El servidor respondió con HTTP ${response.status}`);
+    }
+
+    let payload;
+    try {
+        payload = await response.json();
+    } catch (parseError) {
+        throw new Error('El servidor no devolvió JSON válido. Revisa el deployment de Apps Script.');
+    }
+
+    if (!payload || payload.ok !== true) {
+        const detalle = payload?.error ? ` Detalle: ${payload.error}` : '';
+        throw new Error(`Apps Script no confirmó el guardado.${detalle}`);
+    }
+
+    return payload;
 }
 
 
@@ -109,6 +136,61 @@ function reiniciarResultados() {
     document.getElementById('estado_global').textContent = '-';
 }
 
+let progressIntervalId = null;
+
+function actualizarBarraEnvio(porcentaje, mensaje) {
+    const progress = document.getElementById('submitProgress');
+    const fill = document.getElementById('submitProgressFill');
+    const label = document.getElementById('submitProgressLabel');
+
+    if (!progress || !fill || !label) return;
+
+    const valor = Math.max(0, Math.min(100, porcentaje));
+    progress.classList.add('visible');
+    progress.setAttribute('aria-hidden', 'false');
+    fill.style.width = `${valor}%`;
+    if (mensaje) {
+        label.textContent = mensaje;
+    }
+}
+
+function iniciarBarraEnvio() {
+    let progreso = 8;
+    actualizarBarraEnvio(progreso, 'Preparando envío...');
+
+    progressIntervalId = window.setInterval(() => {
+        if (progreso >= 92) return;
+
+        const incremento = Math.max(1, Math.round((92 - progreso) / 8));
+        progreso += incremento;
+        actualizarBarraEnvio(progreso, 'Enviando a base de datos...');
+    }, 260);
+}
+
+function finalizarBarraEnvio(exito) {
+    if (progressIntervalId) {
+        window.clearInterval(progressIntervalId);
+        progressIntervalId = null;
+    }
+
+    actualizarBarraEnvio(100, exito ? 'Envío confirmado.' : 'No se pudo confirmar el envío.');
+}
+
+function ocultarBarraEnvio() {
+    const progress = document.getElementById('submitProgress');
+    const fill = document.getElementById('submitProgressFill');
+    const label = document.getElementById('submitProgressLabel');
+
+    if (!progress || !fill || !label) return;
+
+    window.setTimeout(() => {
+        progress.classList.remove('visible');
+        progress.setAttribute('aria-hidden', 'true');
+        fill.style.width = '0%';
+        label.textContent = 'Preparando envío...';
+    }, 500);
+}
+
 // Manejar envío del formulario
 document.getElementById('inspectionForm').addEventListener('submit', async function(e) {
     e.preventDefault();
@@ -119,39 +201,45 @@ document.getElementById('inspectionForm').addEventListener('submit', async funct
 
     // Bloquear botón para evitar múltiples envíos
     const submitBtn = document.querySelector('.submit-btn');
-    const originalText = submitBtn.textContent;
-    submitBtn.textContent = 'Enviando a Base de Datos MOPC...';
+    const submitBtnText = submitBtn.querySelector('.submit-btn-text');
+    const originalText = submitBtnText ? submitBtnText.textContent : submitBtn.textContent.trim();
+    if (submitBtnText) {
+        submitBtnText.textContent = 'Enviando a Base de Datos MOPC...';
+    } else {
+        submitBtn.textContent = 'Enviando a Base de Datos MOPC...';
+    }
+    iniciarBarraEnvio();
     submitBtn.disabled = true;
 
-    // Captura de datos para el Servidor (Metodología AASHTO MBE)
-    const formData = {
-        identificador: document.getElementById('identificador').value,
-        nombreEstructura: document.getElementById('nombreEstructura').value,
-        provincia: document.getElementById('provincia').value,
-        latitud: document.getElementById('latitud').value,
-        longitud: document.getElementById('longitud').value,
-        tipoEstructura: document.getElementById('tipoEstructura').value,
-        califSuper: document.getElementById('calif_superestructura').textContent,
-        califSub: document.getElementById('calif_subestructura').textContent,
-        califCauce: document.getElementById('calif_cauce').textContent,
-        accionRecomendada: document.getElementById('accionRecomendada').value,
-        riesgoIdentificado: document.getElementById('riesgoIdentificado').value
-    };
-
-    // URL de tu motor lógico en Apps Script
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbzHjnQlNfquXFyaFewmBu4JJpEzKiVZ_wDM9hDl_mnqAmcK3SkfEfJ55hygqgcKSy99/exec';
-
-    // Preparar envío
-    const params = new URLSearchParams(formData);
-
     try {
-        const resultado = await enviarConFallback(scriptURL, params);
+        const fotos = await recopilarFotosSeleccionadas();
 
-        if (resultado.modo === 'cors') {
-            showToast('✓ Reporte enviado y confirmado por el servidor.', 'success');
-        } else {
-            showToast('✓ Reporte enviado en modo compatibilidad (sin confirmación detallada).', 'warning');
-        }
+        // Captura de datos para el Servidor (Metodología AASHTO MBE)
+        const formData = {
+            identificador: document.getElementById('identificador').value,
+            nombreEstructura: document.getElementById('nombreEstructura').value,
+            provincia: document.getElementById('provincia').value,
+            latitud: document.getElementById('latitud').value,
+            longitud: document.getElementById('longitud').value,
+            tipoEstructura: document.getElementById('tipoEstructura').value,
+            califSuper: document.getElementById('calif_superestructura').textContent,
+            califSub: document.getElementById('calif_subestructura').textContent,
+            califCauce: document.getElementById('calif_cauce').textContent,
+            accionRecomendada: document.getElementById('accionRecomendada').value,
+            riesgoIdentificado: document.getElementById('riesgoIdentificado').value,
+            puenteCarpeta: document.getElementById('nombreEstructura').value,
+            fotos: JSON.stringify(fotos)
+        };
+
+        // URL de tu motor lógico en Apps Script
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbzHjnQlNfquXFyaFewmBu4JJpEzKiVZ_wDM9hDl_mnqAmcK3SkfEfJ55hygqgcKSy99/exec';
+
+        // Preparar envío
+        const params = new URLSearchParams(formData);
+
+        const resultado = await enviarReporte(scriptURL, params);
+        finalizarBarraEnvio(true);
+        showToast(`✓ Reporte enviado y confirmado (${resultado.fotosGuardadas || 0} fotos).`, 'success');
 
         this.reset();
         reiniciarResultados();
@@ -161,9 +249,15 @@ document.getElementById('inspectionForm').addEventListener('submit', async funct
         }
     } catch (error) {
         console.error('Error!', error.message);
-        showToast('Error de conexión. Verifique su señal de internet.', 'error');
+        finalizarBarraEnvio(false);
+        showToast(`No se pudo confirmar el envío: ${error.message}`, 'error');
     } finally {
         submitBtn.disabled = false;
-        submitBtn.textContent = originalText;
+        if (submitBtnText) {
+            submitBtnText.textContent = originalText;
+        } else {
+            submitBtn.textContent = originalText;
+        }
+        ocultarBarraEnvio();
     }
 });
