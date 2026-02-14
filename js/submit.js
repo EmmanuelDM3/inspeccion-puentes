@@ -59,7 +59,7 @@ function leerArchivoComoDataURL(archivo) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => resolve(reader.result);
-        reader.onerror = () => reject(new Error(`No se pudo leer el archivo: ${archivo.name}`));
+        reader.onerror = () => reject(new Error(`No se pudo leer el archivo ${archivo.name}`));
         reader.readAsDataURL(archivo);
     });
 }
@@ -73,7 +73,7 @@ async function recopilarFotosSeleccionadas() {
         if (!archivo) continue;
 
         const dataURL = await leerArchivoComoDataURL(archivo);
-        const base64 = String(dataURL).split(',')[1] || '';
+        const base64 = dataURL.split(',')[1] || '';
 
         fotos.push({
             campo: input.id,
@@ -87,30 +87,14 @@ async function recopilarFotosSeleccionadas() {
     return fotos;
 }
 
-function construirMensajeErrorEnvio(error) {
-    const mensaje = error?.message || 'Error desconocido de red.';
-
-    if (mensaje.includes('Failed to fetch')) {
-        return 'No se pudo conectar con Apps Script (Failed to fetch). Verifica URL del deployment, permisos del Web App y conexión a internet.';
-    }
-
-    return `No se pudo confirmar el envío: ${mensaje}`;
-}
-
 async function enviarReporte(scriptURL, params) {
-    let response;
-
-    try {
-        response = await fetch(scriptURL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
-            },
-            body: params
-        });
-    } catch (networkError) {
-        throw new Error('Failed to fetch');
-    }
+    const response = await fetch(scriptURL, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
+        },
+        body: params
+    });
 
     if (!response.ok) {
         throw new Error(`El servidor respondió con HTTP ${response.status}`);
@@ -119,7 +103,7 @@ async function enviarReporte(scriptURL, params) {
     let payload;
     try {
         payload = await response.json();
-    } catch (_) {
+    } catch (parseError) {
         throw new Error('El servidor no devolvió JSON válido. Revisa el deployment de Apps Script.');
     }
 
@@ -127,6 +111,9 @@ async function enviarReporte(scriptURL, params) {
         const detalle = payload?.error ? ` Detalle: ${payload.error}` : '';
         throw new Error(`Apps Script no confirmó el guardado.${detalle}`);
     }
+
+    return payload;
+}
 
     return payload;
 }
@@ -164,20 +151,18 @@ function actualizarBarraEnvio(porcentaje, mensaje) {
     progress.classList.add('visible');
     progress.setAttribute('aria-hidden', 'false');
     fill.style.width = `${valor}%`;
-    if (mensaje) label.textContent = mensaje;
+    if (mensaje) {
+        label.textContent = mensaje;
+    }
 }
 
 function iniciarBarraEnvio() {
-    if (progressIntervalId) {
-        window.clearInterval(progressIntervalId);
-        progressIntervalId = null;
-    }
-
     let progreso = 8;
     actualizarBarraEnvio(progreso, 'Preparando envío...');
 
     progressIntervalId = window.setInterval(() => {
         if (progreso >= 92) return;
+
         const incremento = Math.max(1, Math.round((92 - progreso) / 8));
         progreso += incremento;
         actualizarBarraEnvio(progreso, 'Enviando a base de datos...');
@@ -205,7 +190,7 @@ function ocultarBarraEnvio() {
         progress.setAttribute('aria-hidden', 'true');
         fill.style.width = '0%';
         label.textContent = 'Preparando envío...';
-    }, 600);
+    }, 500);
 }
 
 // Manejar envío del formulario
@@ -219,19 +204,18 @@ document.getElementById('inspectionForm').addEventListener('submit', async funct
     const submitBtn = document.querySelector('.submit-btn');
     const submitBtnText = submitBtn.querySelector('.submit-btn-text');
     const originalText = submitBtnText ? submitBtnText.textContent : submitBtn.textContent.trim();
-
     if (submitBtnText) {
         submitBtnText.textContent = 'Enviando a Base de Datos MOPC...';
     } else {
         submitBtn.textContent = 'Enviando a Base de Datos MOPC...';
     }
-
-    submitBtn.disabled = true;
     iniciarBarraEnvio();
+    submitBtn.disabled = true;
 
     try {
         const fotos = await recopilarFotosSeleccionadas();
 
+        // Captura de datos para el Servidor (Metodología AASHTO MBE)
         const formData = {
             identificador: document.getElementById('identificador').value,
             nombreEstructura: document.getElementById('nombreEstructura').value,
@@ -248,7 +232,10 @@ document.getElementById('inspectionForm').addEventListener('submit', async funct
             fotos: JSON.stringify(fotos)
         };
 
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbzHjnQlNfquXFyaFewmBu4JJpEzKiVZ_wDM9hDl_mnqAmcK3SkfEfJ55hygqgcKSy99/exec';
+        // URL de tu motor lógico en Apps Script
+        const scriptURL = 'https://script.google.com/macros/s/AKfycby_dqUNkyPIDkvd_QCBj-U_MAIhBv8wthqWqqmlTpQKLysGUnUMKJ2V_YNwXwVRsnhM/exec';
+
+        // Preparar envío
         const params = new URLSearchParams(formData);
 
         const resultado = await enviarReporte(scriptURL, params);
@@ -260,9 +247,9 @@ document.getElementById('inspectionForm').addEventListener('submit', async funct
         limpiarUIEvaluacion();
         if (typeof limpiarBorrador === 'function') limpiarBorrador();
     } catch (error) {
-        console.error('Error!', error);
+        console.error('Error!', error.message);
         finalizarBarraEnvio(false);
-        showToast(construirMensajeErrorEnvio(error), 'error');
+        showToast(`No se pudo confirmar el envío: ${error.message}`, 'error');
     } finally {
         submitBtn.disabled = false;
         if (submitBtnText) {
