@@ -87,37 +87,32 @@ async function recopilarFotosSeleccionadas() {
     return fotos;
 }
 
-async function enviarConFallback(scriptURL, params) {
-    try {
-        const response = await fetch(scriptURL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
-            },
-            body: params
-        });
+async function enviarReporte(scriptURL, params) {
+    const response = await fetch(scriptURL, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
+        },
+        body: params
+    });
 
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-        }
-
-        let payload = null;
-        try {
-            payload = await response.json();
-        } catch (_) {
-            // Backend actual puede no responder JSON.
-        }
-
-        return { modo: 'cors', payload };
-    } catch (corsError) {
-        await fetch(scriptURL, {
-            method: 'POST',
-            mode: 'no-cors',
-            body: params
-        });
-
-        return { modo: 'no-cors' };
+    if (!response.ok) {
+        throw new Error(`El servidor respondió con HTTP ${response.status}`);
     }
+
+    let payload;
+    try {
+        payload = await response.json();
+    } catch (parseError) {
+        throw new Error('El servidor no devolvió JSON válido. Revisa el deployment de Apps Script.');
+    }
+
+    if (!payload || payload.ok !== true) {
+        const detalle = payload?.error ? ` Detalle: ${payload.error}` : '';
+        throw new Error(`Apps Script no confirmó el guardado.${detalle}`);
+    }
+
+    return payload;
 }
 
 
@@ -181,13 +176,8 @@ document.getElementById('inspectionForm').addEventListener('submit', async funct
         // Preparar envío
         const params = new URLSearchParams(formData);
 
-        const resultado = await enviarConFallback(scriptURL, params);
-
-        if (resultado.modo === 'cors') {
-            showToast('✓ Reporte enviado y confirmado por el servidor.', 'success');
-        } else {
-            showToast('✓ Reporte enviado en modo compatibilidad (sin confirmación detallada).', 'warning');
-        }
+        const resultado = await enviarReporte(scriptURL, params);
+        showToast(`✓ Reporte enviado y confirmado (${resultado.fotosGuardadas || 0} fotos).`, 'success');
 
         this.reset();
         reiniciarResultados();
@@ -197,7 +187,7 @@ document.getElementById('inspectionForm').addEventListener('submit', async funct
         }
     } catch (error) {
         console.error('Error!', error.message);
-        showToast('Error de conexión. Verifique su señal de internet.', 'error');
+        showToast(`No se pudo confirmar el envío: ${error.message}`, 'error');
     } finally {
         submitBtn.disabled = false;
         submitBtn.textContent = originalText;
