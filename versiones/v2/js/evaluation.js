@@ -21,7 +21,11 @@
             const buttons = document.querySelectorAll(`#severity_${id} .severity-btn`);
             buttons.forEach(btn => btn.classList.remove('selected'));
             
-            event.target.closest('.severity-btn').classList.add('selected');
+            const trigger = (typeof event !== 'undefined' && event?.target) ? event.target : document.activeElement;
+            const targetBtn = trigger?.closest?.('.severity-btn');
+            if (targetBtn) {
+                targetBtn.classList.add('selected');
+            }
             document.getElementById('severity_value_' + id).value = level;
             
             calcularCalificaciones();
