@@ -136,6 +136,61 @@ function reiniciarResultados() {
     document.getElementById('estado_global').textContent = '-';
 }
 
+let progressIntervalId = null;
+
+function actualizarBarraEnvio(porcentaje, mensaje) {
+    const progress = document.getElementById('submitProgress');
+    const fill = document.getElementById('submitProgressFill');
+    const label = document.getElementById('submitProgressLabel');
+
+    if (!progress || !fill || !label) return;
+
+    const valor = Math.max(0, Math.min(100, porcentaje));
+    progress.classList.add('visible');
+    progress.setAttribute('aria-hidden', 'false');
+    fill.style.width = `${valor}%`;
+    if (mensaje) {
+        label.textContent = mensaje;
+    }
+}
+
+function iniciarBarraEnvio() {
+    let progreso = 8;
+    actualizarBarraEnvio(progreso, 'Preparando envío...');
+
+    progressIntervalId = window.setInterval(() => {
+        if (progreso >= 92) return;
+
+        const incremento = Math.max(1, Math.round((92 - progreso) / 8));
+        progreso += incremento;
+        actualizarBarraEnvio(progreso, 'Enviando a base de datos...');
+    }, 260);
+}
+
+function finalizarBarraEnvio(exito) {
+    if (progressIntervalId) {
+        window.clearInterval(progressIntervalId);
+        progressIntervalId = null;
+    }
+
+    actualizarBarraEnvio(100, exito ? 'Envío confirmado.' : 'No se pudo confirmar el envío.');
+}
+
+function ocultarBarraEnvio() {
+    const progress = document.getElementById('submitProgress');
+    const fill = document.getElementById('submitProgressFill');
+    const label = document.getElementById('submitProgressLabel');
+
+    if (!progress || !fill || !label) return;
+
+    window.setTimeout(() => {
+        progress.classList.remove('visible');
+        progress.setAttribute('aria-hidden', 'true');
+        fill.style.width = '0%';
+        label.textContent = 'Preparando envío...';
+    }, 500);
+}
+
 // Manejar envío del formulario
 document.getElementById('inspectionForm').addEventListener('submit', async function(e) {
     e.preventDefault();
@@ -146,8 +201,14 @@ document.getElementById('inspectionForm').addEventListener('submit', async funct
 
     // Bloquear botón para evitar múltiples envíos
     const submitBtn = document.querySelector('.submit-btn');
-    const originalText = submitBtn.textContent;
-    submitBtn.textContent = 'Enviando a Base de Datos MOPC...';
+    const submitBtnText = submitBtn.querySelector('.submit-btn-text');
+    const originalText = submitBtnText ? submitBtnText.textContent : submitBtn.textContent.trim();
+    if (submitBtnText) {
+        submitBtnText.textContent = 'Enviando a Base de Datos MOPC...';
+    } else {
+        submitBtn.textContent = 'Enviando a Base de Datos MOPC...';
+    }
+    iniciarBarraEnvio();
     submitBtn.disabled = true;
 
     try {
@@ -171,12 +232,13 @@ document.getElementById('inspectionForm').addEventListener('submit', async funct
         };
 
         // URL de tu motor lógico en Apps Script
-        const scriptURL = 'https://script.google.com/macros/s/AKfycby_dqUNkyPIDkvd_QCBj-U_MAIhBv8wthqWqqmlTpQKLysGUnUMKJ2V_YNwXwVRsnhM/exec';
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbzHjnQlNfquXFyaFewmBu4JJpEzKiVZ_wDM9hDl_mnqAmcK3SkfEfJ55hygqgcKSy99/exec';
 
         // Preparar envío
         const params = new URLSearchParams(formData);
 
         const resultado = await enviarReporte(scriptURL, params);
+        finalizarBarraEnvio(true);
         showToast(`✓ Reporte enviado y confirmado (${resultado.fotosGuardadas || 0} fotos).`, 'success');
 
         this.reset();
@@ -187,9 +249,15 @@ document.getElementById('inspectionForm').addEventListener('submit', async funct
         }
     } catch (error) {
         console.error('Error!', error.message);
+        finalizarBarraEnvio(false);
         showToast(`No se pudo confirmar el envío: ${error.message}`, 'error');
     } finally {
         submitBtn.disabled = false;
-        submitBtn.textContent = originalText;
+        if (submitBtnText) {
+            submitBtnText.textContent = originalText;
+        } else {
+            submitBtn.textContent = originalText;
+        }
+        ocultarBarraEnvio();
     }
 });
